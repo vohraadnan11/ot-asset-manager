@@ -1,0 +1,248 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1.5rem 0}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.title-block h1{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.title-block p{font-size:13px;color:var(--color-text-secondary);margin-top:2px}
+.btn-add{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;font-weight:500;cursor:pointer}
+.btn-add:hover{background:var(--color-background-secondary)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.5rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.metric-val.danger{color:#A32D2D}
+.metric-val.warn{color:#854F0B}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.filters select,.filters input{font-size:13px;padding:6px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);height:34px}
+.filters input{flex:1;min-width:160px}
+.table-wrap{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+th{background:var(--color-background-secondary);padding:10px 12px;text-align:left;font-weight:500;font-size:12px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+td{padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--color-background-secondary)}
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500;white-space:nowrap}
+.zone-ot{background:#E1F5EE;color:#085041}
+.zone-it{background:#E6F1FB;color:#0C447C}
+.zone-dmz{background:#FAEEDA;color:#633806}
+.status-active{background:#EAF3DE;color:#27500A}
+.status-inactive{background:#FCEBEB;color:#791F1F}
+.status-maint{background:#FAEEDA;color:#633806}
+.risk-high{background:#FCEBEB;color:#791F1F}
+.risk-med{background:#FAEEDA;color:#633806}
+.risk-low{background:#EAF3DE;color:#27500A}
+.actions{display:flex;gap:6px}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--color-text-secondary);padding:2px 4px;border-radius:4px;font-size:16px;line-height:1}
+.icon-btn:hover{color:var(--color-text-primary);background:var(--color-background-tertiary)}
+.modal-overlay{position:relative;background:rgba(0,0,0,0.4);border-radius:var(--border-radius-lg);padding:2rem;margin-top:1rem;display:none}
+.modal-overlay.open{display:block}
+.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-secondary);padding:1.5rem;max-width:540px;margin:0 auto}
+.modal h2{font-size:16px;font-weight:500;margin-bottom:1rem;color:var(--color-text-primary)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:12px;color:var(--color-text-secondary);font-weight:500}
+.form-group input,.form-group select{font-size:13px;padding:7px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem}
+.btn-cancel{padding:7px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:none;color:var(--color-text-primary);font-size:13px;cursor:pointer}
+.btn-cancel:hover{background:var(--color-background-secondary)}
+.btn-save{padding:7px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;font-weight:500;cursor:pointer}
+.btn-save:hover{background:var(--color-background-secondary)}
+.empty{text-align:center;padding:2.5rem;color:var(--color-text-secondary);font-size:13px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}th:nth-child(4),td:nth-child(4),th:nth-child(5),td:nth-child(5){display:none}}
+</style>
+<h2 class="sr-only">OT Asset Register — manage and track operational technology assets by zone, type, and patch status.</h2>
+<div class="wrap">
+  <div class="topbar">
+    <div class="title-block">
+      <h1>OT Asset Register</h1>
+      <p>Operational technology device inventory &amp; risk tracker</p>
+    </div>
+    <button class="btn-add" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add asset</button>
+  </div>
+  <div class="metrics" id="metrics"></div>
+  <div class="filters">
+    <input type="text" id="search" placeholder="Search by name, IP, vendor…" oninput="render()">
+    <select id="fzone" onchange="render()">
+      <option value="">All zones</option>
+      <option>OT</option><option>IT</option><option>DMZ</option>
+    </select>
+    <select id="ftype" onchange="render()">
+      <option value="">All types</option>
+      <option>PLC</option><option>HMI</option><option>RTU</option><option>Switch</option><option>Historian</option><option>SCADA Server</option><option>Firewall</option><option>Sensor</option>
+    </select>
+    <select id="frisk" onchange="render()">
+      <option value="">All risk</option>
+      <option>High</option><option>Medium</option><option>Low</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:18%">Device name</th>
+          <th style="width:10%">Type</th>
+          <th style="width:8%">Zone</th>
+          <th style="width:12%">IP address</th>
+          <th style="width:12%">Vendor</th>
+          <th style="width:10%">Firmware</th>
+          <th style="width:11%">Last patch</th>
+          <th style="width:9%">Status</th>
+          <th style="width:7%">Risk</th>
+          <th style="width:7%"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2 id="modalTitle">Add asset</h2>
+      <div class="form-grid">
+        <div class="form-group full"><label>Device name</label><input id="f-name" placeholder="e.g. PLC-Line-01"></div>
+        <div class="form-group"><label>Type</label>
+          <select id="f-type"><option>PLC</option><option>HMI</option><option>RTU</option><option>Switch</option><option>Historian</option><option>SCADA Server</option><option>Firewall</option><option>Sensor</option></select>
+        </div>
+        <div class="form-group"><label>Zone</label>
+          <select id="f-zone"><option>OT</option><option>IT</option><option>DMZ</option></select>
+        </div>
+        <div class="form-group"><label>IP address</label><input id="f-ip" placeholder="192.168.x.x"></div>
+        <div class="form-group"><label>Vendor</label><input id="f-vendor" placeholder="e.g. Siemens"></div>
+        <div class="form-group"><label>Firmware version</label><input id="f-fw" placeholder="e.g. v2.4.1"></div>
+        <div class="form-group"><label>Last patch date</label><input id="f-patch" type="date"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="f-status"><option>Active</option><option>Inactive</option><option>Maintenance</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveAsset()">Save asset</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+let assets=[
+  {id:1,name:"PLC-Line-01",type:"PLC",zone:"OT",ip:"192.168.10.11",vendor:"Siemens",fw:"v2.3.0",patch:"2023-08-15",status:"Active"},
+  {id:2,name:"HMI-Control-A",type:"HMI",zone:"OT",ip:"192.168.10.21",vendor:"Rockwell",fw:"v1.9.4",patch:"2024-01-10",status:"Active"},
+  {id:3,name:"RTU-Field-05",type:"RTU",zone:"OT",ip:"192.168.10.35",vendor:"ABB",fw:"v3.1.2",patch:"2022-05-20",status:"Active"},
+  {id:4,name:"SW-OT-Core",type:"Switch",zone:"OT",ip:"192.168.10.1",vendor:"Cisco",fw:"15.2(4)E",patch:"2024-03-01",status:"Active"},
+  {id:5,name:"Historian-01",type:"Historian",zone:"DMZ",ip:"10.10.1.50",vendor:"OSIsoft",fw:"v2021.3",patch:"2024-04-20",status:"Active"},
+  {id:6,name:"FW-IT-OT",type:"Firewall",zone:"DMZ",ip:"10.10.1.1",vendor:"Fortinet",fw:"v7.2.5",patch:"2024-05-15",status:"Active"},
+  {id:7,name:"SCADA-Server",type:"SCADA Server",zone:"IT",ip:"10.0.1.100",vendor:"Wonderware",fw:"v2020.1",patch:"2023-11-30",status:"Active"},
+  {id:8,name:"PLC-Line-02",type:"PLC",zone:"OT",ip:"192.168.10.12",vendor:"Siemens",fw:"v1.8.0",patch:"2021-03-10",status:"Inactive"},
+  {id:9,name:"Sensor-Temp-01",type:"Sensor",zone:"OT",ip:"192.168.10.90",vendor:"Honeywell",fw:"v1.0.2",patch:"2022-09-01",status:"Maintenance"},
+];
+let nextId=10;
+let editId=null;
+
+function riskLevel(patch){
+  const d=new Date(patch),now=new Date(),months=(now-d)/(1000*60*60*24*30);
+  if(months>24)return"High";
+  if(months>12)return"Medium";
+  return"Low";
+}
+function zoneBadge(z){return`<span class="badge zone-${z.toLowerCase()}">${z}</span>`}
+function statusBadge(s){const k=s.toLowerCase().replace(' ','-');return`<span class="badge status-${k}">${s}</span>`}
+function riskBadge(r){return`<span class="badge risk-${r.toLowerCase()}">${r}</span>`}
+
+function render(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const fz=document.getElementById('fzone').value;
+  const ft=document.getElementById('ftype').value;
+  const fr=document.getElementById('frisk').value;
+  const filtered=assets.filter(a=>{
+    const risk=riskLevel(a.patch);
+    if(fz&&a.zone!==fz)return false;
+    if(ft&&a.type!==ft)return false;
+    if(fr&&risk!==fr)return false;
+    if(q&&![a.name,a.ip,a.vendor,a.type].join(' ').toLowerCase().includes(q))return false;
+    return true;
+  });
+  const tbody=document.getElementById('tbody');
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty"><i class="ti ti-device-desktop-off" style="font-size:24px;display:block;margin-bottom:8px" aria-hidden="true"></i>No assets found</div></td></tr>`;renderMetrics();return;}
+  tbody.innerHTML=filtered.map(a=>{
+    const risk=riskLevel(a.patch);
+    return`<tr>
+      <td title="${a.name}">${a.name}</td>
+      <td>${a.type}</td>
+      <td>${zoneBadge(a.zone)}</td>
+      <td>${a.ip}</td>
+      <td title="${a.vendor}">${a.vendor}</td>
+      <td>${a.fw}</td>
+      <td>${a.patch}</td>
+      <td>${statusBadge(a.status)}</td>
+      <td>${riskBadge(risk)}</td>
+      <td><div class="actions">
+        <button class="icon-btn" onclick="editAsset(${a.id})" title="Edit"><i class="ti ti-edit" aria-hidden="true"></i></button>
+        <button class="icon-btn" onclick="deleteAsset(${a.id})" title="Delete"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  renderMetrics();
+}
+
+function renderMetrics(){
+  const total=assets.length;
+  const high=assets.filter(a=>riskLevel(a.patch)==='High').length;
+  const med=assets.filter(a=>riskLevel(a.patch)==='Medium').length;
+  const zones={OT:0,IT:0,DMZ:0};
+  assets.forEach(a=>zones[a.zone]=(zones[a.zone]||0)+1);
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Total assets</div><div class="metric-val">${total}</div></div>
+    <div class="metric"><div class="metric-label">High risk</div><div class="metric-val danger">${high}</div></div>
+    <div class="metric"><div class="metric-label">Medium risk</div><div class="metric-val warn">${med}</div></div>
+    <div class="metric"><div class="metric-label">OT zone</div><div class="metric-val">${zones.OT}</div></div>
+    <div class="metric"><div class="metric-label">IT zone</div><div class="metric-val">${zones.IT}</div></div>
+    <div class="metric"><div class="metric-label">DMZ zone</div><div class="metric-val">${zones.DMZ}</div></div>
+  `;
+}
+
+function openModal(id=null){
+  editId=id;
+  const overlay=document.getElementById('modalOverlay');
+  overlay.classList.add('open');
+  document.getElementById('modalTitle').textContent=id?'Edit asset':'Add asset';
+  if(id){
+    const a=assets.find(x=>x.id===id);
+    document.getElementById('f-name').value=a.name;
+    document.getElementById('f-type').value=a.type;
+    document.getElementById('f-zone').value=a.zone;
+    document.getElementById('f-ip').value=a.ip;
+    document.getElementById('f-vendor').value=a.vendor;
+    document.getElementById('f-fw').value=a.fw;
+    document.getElementById('f-patch').value=a.patch;
+    document.getElementById('f-status').value=a.status;
+  } else {
+    ['f-name','f-ip','f-vendor','f-fw'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-patch').value='';
+    document.getElementById('f-type').value='PLC';
+    document.getElementById('f-zone').value='OT';
+    document.getElementById('f-status').value='Active';
+  }
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+function editAsset(id){openModal(id)}
+function deleteAsset(id){assets=assets.filter(a=>a.id!==id);render()}
+function saveAsset(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name)return;
+  const obj={
+    id:editId||nextId++,
+    name,
+    type:document.getElementById('f-type').value,
+    zone:document.getElementById('f-zone').value,
+    ip:document.getElementById('f-ip').value.trim(),
+    vendor:document.getElementById('f-vendor').value.trim(),
+    fw:document.getElementById('f-fw').value.trim(),
+    patch:document.getElementById('f-patch').value,
+    status:document.getElementById('f-status').value,
+  };
+  if(editId){assets=assets.map(a=>a.id===editId?obj:a);}
+  else{assets.push(obj);}
+  closeModal();render();
+}
+render();
+</script>
