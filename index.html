@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OT Asset Register</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg-sec: #f5f5f4; --bg-ter: #eeede9;
+    --text: #1a1a18; --text-sec: #6b6b67;
+    --border: rgba(0,0,0,0.12); --border-sec: rgba(0,0,0,0.18);
+    --radius-md: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1c1c1a; --bg-sec:#242422; --bg-ter:#2c2c2a; --text:#f0efe9; --text-sec:#9a9a94; --border:rgba(255,255,255,0.10); --border-sec:rgba(255,255,255,0.18); }
+    .zone-ot{background:#085041!important;color:#9FE1CB!important}
+    .zone-it{background:#0C447C!important;color:#B5D4F4!important}
+    .zone-dmz{background:#633806!important;color:#FAC775!important}
+    .status-active{background:#27500A!important;color:#C0DD97!important}
+    .status-inactive{background:#791F1F!important;color:#F7C1C1!important}
+    .status-maintenance{background:#633806!important;color:#FAC775!important}
+    .risk-high{background:#791F1F!important;color:#F7C1C1!important}
+    .risk-medium{background:#633806!important;color:#FAC775!important}
+    .risk-low{background:#27500A!important;color:#C0DD97!important}
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-ter);color:var(--text);min-height:100vh}
+  .page{max-width:1100px;margin:0 auto;padding:2rem 1.25rem}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+  .title-block h1{font-size:22px;font-weight:600;color:var(--text)}
+  .title-block p{font-size:13px;color:var(--text-sec);margin-top:3px}
+  .btn-add{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius-md);border:0.5px solid var(--border-sec);background:var(--bg);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s}
+  .btn-add:hover{background:var(--bg-sec)}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.5rem}
+  .metric{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:14px 16px}
+  .metric-label{font-size:12px;color:var(--text-sec);margin-bottom:5px}
+  .metric-val{font-size:24px;font-weight:600;color:var(--text)}
+  .metric-val.danger{color:#A32D2D} .metric-val.warn{color:#854F0B}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+  .filters input,.filters select{font-size:13px;padding:7px 10px;border-radius:var(--radius-md);border:0.5px solid var(--border-sec);background:var(--bg);color:var(--text);height:36px;outline:none}
+  .filters input{flex:1;min-width:180px}
+  .filters input:focus,.filters select:focus{border-color:#378ADD}
+  .table-wrap{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  th{background:var(--bg-sec);padding:10px 12px;text-align:left;font-weight:500;font-size:12px;color:var(--text-sec);border-bottom:0.5px solid var(--border)}
+  td{padding:10px 12px;border-bottom:0.5px solid var(--border);color:var(--text);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--bg-sec)}
+  .badge{display:inline-block;padding:2px 9px;border-radius:100px;font-size:11px;font-weight:500}
+  .zone-ot{background:#E1F5EE;color:#085041} .zone-it{background:#E6F1FB;color:#0C447C} .zone-dmz{background:#FAEEDA;color:#633806}
+  .status-active{background:#EAF3DE;color:#27500A} .status-inactive{background:#FCEBEB;color:#791F1F} .status-maintenance{background:#FAEEDA;color:#633806}
+  .risk-high{background:#FCEBEB;color:#791F1F} .risk-medium{background:#FAEEDA;color:#633806} .risk-low{background:#EAF3DE;color:#27500A}
+  .actions{display:flex;gap:4px}
+  .icon-btn{background:none;border:none;cursor:pointer;color:var(--text-sec);padding:3px 5px;border-radius:4px;font-size:16px;line-height:1}
+  .icon-btn:hover{color:var(--text);background:var(--bg-ter)}
+  .empty{text-align:center;padding:3rem;color:var(--text-sec);font-size:13px}
+  .empty i{font-size:28px;display:block;margin-bottom:10px}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;padding:1rem}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--bg);border-radius:var(--radius-lg);border:0.5px solid var(--border-sec);padding:1.5rem;width:100%;max-width:520px}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+  .modal-header h2{font-size:16px;font-weight:600;color:var(--text)}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-group{display:flex;flex-direction:column;gap:4px}
+  .form-group.full{grid-column:1/-1}
+  .form-group label{font-size:12px;color:var(--text-sec);font-weight:500}
+  .form-group input,.form-group select{font-size:13px;padding:8px 10px;border-radius:var(--radius-md);border:0.5px solid var(--border-sec);background:var(--bg);color:var(--text);outline:none}
+  .form-group input:focus,.form-group select:focus{border-color:#378ADD}
+  .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem}
+  .btn-cancel{padding:8px 16px;border-radius:var(--radius-md);border:0.5px solid var(--border-sec);background:none;color:var(--text);font-size:13px;cursor:pointer}
+  .btn-cancel:hover{background:var(--bg-sec)}
+  .btn-save{padding:8px 16px;border-radius:var(--radius-md);border:0.5px solid var(--border-sec);background:var(--bg-sec);color:var(--text);font-size:13px;font-weight:500;cursor:pointer}
+  .btn-save:hover{background:var(--bg-ter)}
+  @media(max-width:640px){.form-grid{grid-template-columns:1fr} th:nth-child(4),td:nth-child(4),th:nth-child(5),td:nth-child(5),th:nth-child(6),td:nth-child(6){display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <div class="title-block">
+      <h1>OT Asset Register</h1>
+      <p>Operational technology device inventory &amp; risk tracker</p>
+    </div>
+    <button class="btn-add" onclick="openModal()"><i class="ti ti-plus"></i> Add asset</button>
+  </div>
+  <div class="metrics" id="metrics"></div>
+  <div class="filters">
+    <input type="text" id="search" placeholder="Search by name, IP, vendor…" oninput="render()">
+    <select id="fzone" onchange="render()">
+      <option value="">All zones</option><option>OT</option><option>IT</option><option>DMZ</option>
+    </select>
+    <select id="ftype" onchange="render()">
+      <option value="">All types</option>
+      <option>PLC</option><option>HMI</option><option>RTU</option><option>Switch</option>
+      <option>Historian</option><option>SCADA Server</option><option>Firewall</option><option>Sensor</option>
+    </select>
+    <select id="frisk" onchange="render()">
+      <option value="">All risk</option><option>High</option><option>Medium</option><option>Low</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:18%">Device name</th>
+          <th style="width:10%">Type</th>
+          <th style="width:8%">Zone</th>
+          <th style="width:12%">IP address</th>
+          <th style="width:12%">Vendor</th>
+          <th style="width:10%">Firmware</th>
+          <th style="width:11%">Last patch</th>
+          <th style="width:9%">Status</th>
+          <th style="width:7%">Risk</th>
+          <th style="width:7%"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="bgClose(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add asset</h2>
+      <button class="icon-btn" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Device name</label><input id="f-name" placeholder="e.g. PLC-Line-01"></div>
+      <div class="form-group"><label>Type</label>
+        <select id="f-type"><option>PLC</option><option>HMI</option><option>RTU</option><option>Switch</option><option>Historian</option><option>SCADA Server</option><option>Firewall</option><option>Sensor</option></select>
+      </div>
+      <div class="form-group"><label>Zone</label>
+        <select id="f-zone"><option>OT</option><option>IT</option><option>DMZ</option></select>
+      </div>
+      <div class="form-group"><label>IP address</label><input id="f-ip" placeholder="192.168.x.x"></div>
+      <div class="form-group"><label>Vendor</label><input id="f-vendor" placeholder="e.g. Siemens"></div>
+      <div class="form-group"><label>Firmware version</label><input id="f-fw" placeholder="e.g. v2.4.1"></div>
+      <div class="form-group"><label>Last patch date</label><input id="f-patch" type="date"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="f-status"><option>Active</option><option>Inactive</option><option>Maintenance</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveAsset()">Save asset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let assets=[
+  {id:1,name:"PLC-Line-01",type:"PLC",zone:"OT",ip:"192.168.10.11",vendor:"Siemens",fw:"v2.3.0",patch:"2023-08-15",status:"Active"},
+  {id:2,name:"HMI-Control-A",type:"HMI",zone:"OT",ip:"192.168.10.21",vendor:"Rockwell",fw:"v1.9.4",patch:"2024-01-10",status:"Active"},
+  {id:3,name:"RTU-Field-05",type:"RTU",zone:"OT",ip:"192.168.10.35",vendor:"ABB",fw:"v3.1.2",patch:"2022-05-20",status:"Active"},
+  {id:4,name:"SW-OT-Core",type:"Switch",zone:"OT",ip:"192.168.10.1",vendor:"Cisco",fw:"15.2(4)E",patch:"2024-03-01",status:"Active"},
+  {id:5,name:"Historian-01",type:"Historian",zone:"DMZ",ip:"10.10.1.50",vendor:"OSIsoft",fw:"v2021.3",patch:"2024-04-20",status:"Active"},
+  {id:6,name:"FW-IT-OT",type:"Firewall",zone:"DMZ",ip:"10.10.1.1",vendor:"Fortinet",fw:"v7.2.5",patch:"2024-05-15",status:"Active"},
+  {id:7,name:"SCADA-Server",type:"SCADA Server",zone:"IT",ip:"10.0.1.100",vendor:"Wonderware",fw:"v2020.1",patch:"2023-11-30",status:"Active"},
+  {id:8,name:"PLC-Line-02",type:"PLC",zone:"OT",ip:"192.168.10.12",vendor:"Siemens",fw:"v1.8.0",patch:"2021-03-10",status:"Inactive"},
+  {id:9,name:"Sensor-Temp-01",type:"Sensor",zone:"OT",ip:"192.168.10.90",vendor:"Honeywell",fw:"v1.0.2",patch:"2022-09-01",status:"Maintenance"},
+];
+let nextId=10,editId=null;
+
+function riskLevel(p){if(!p)return"High";const m=(new Date()-new Date(p))/(1000*60*60*24*30);return m>24?"High":m>12?"Medium":"Low"}
+function zoneBadge(z){return`<span class="badge zone-${z.toLowerCase()}">${z}</span>`}
+function statusBadge(s){return`<span class="badge status-${s.toLowerCase().replace(' ','-')}">${s}</span>`}
+function riskBadge(r){return`<span class="badge risk-${r.toLowerCase()}">${r}</span>`}
+
+function render(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const fz=document.getElementById('fzone').value;
+  const ft=document.getElementById('ftype').value;
+  const fr=document.getElementById('frisk').value;
+  const filtered=assets.filter(a=>{
+    const risk=riskLevel(a.patch);
+    if(fz&&a.zone!==fz)return false;
+    if(ft&&a.type!==ft)return false;
+    if(fr&&risk!==fr)return false;
+    if(q&&![a.name,a.ip,a.vendor,a.type].join(' ').toLowerCase().includes(q))return false;
+    return true;
+  });
+  const tbody=document.getElementById('tbody');
+  if(!filtered.length){
+    tbody.innerHTML=`<tr><td colspan="10"><div class="empty"><i class="ti ti-device-desktop-off"></i>No assets match your filters</div></td></tr>`;
+  } else {
+    tbody.innerHTML=filtered.map(a=>{
+      const risk=riskLevel(a.patch);
+      return`<tr>
+        <td title="${a.name}">${a.name}</td><td>${a.type}</td><td>${zoneBadge(a.zone)}</td>
+        <td>${a.ip}</td><td title="${a.vendor}">${a.vendor}</td><td>${a.fw}</td>
+        <td>${a.patch||'—'}</td><td>${statusBadge(a.status)}</td><td>${riskBadge(risk)}</td>
+        <td><div class="actions">
+          <button class="icon-btn" onclick="openModal(${a.id})" title="Edit"><i class="ti ti-edit"></i></button>
+          <button class="icon-btn" onclick="deleteAsset(${a.id})" title="Delete"><i class="ti ti-trash"></i></button>
+        </div></td></tr>`;
+    }).join('');
+  }
+  renderMetrics();
+}
+
+function renderMetrics(){
+  const total=assets.length;
+  const high=assets.filter(a=>riskLevel(a.patch)==='High').length;
+  const med=assets.filter(a=>riskLevel(a.patch)==='Medium').length;
+  const zones={OT:0,IT:0,DMZ:0};
+  assets.forEach(a=>zones[a.zone]=(zones[a.zone]||0)+1);
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Total assets</div><div class="metric-val">${total}</div></div>
+    <div class="metric"><div class="metric-label">High risk</div><div class="metric-val danger">${high}</div></div>
+    <div class="metric"><div class="metric-label">Medium risk</div><div class="metric-val warn">${med}</div></div>
+    <div class="metric"><div class="metric-label">OT zone</div><div class="metric-val">${zones.OT}</div></div>
+    <div class="metric"><div class="metric-label">IT zone</div><div class="metric-val">${zones.IT}</div></div>
+    <div class="metric"><div class="metric-label">DMZ zone</div><div class="metric-val">${zones.DMZ}</div></div>`;
+}
+
+function openModal(id){
+  editId=id||null;
+  document.getElementById('modalTitle').textContent=id?'Edit asset':'Add asset';
+  if(id){
+    const a=assets.find(x=>x.id===id);
+    document.getElementById('f-name').value=a.name;
+    document.getElementById('f-type').value=a.type;
+    document.getElementById('f-zone').value=a.zone;
+    document.getElementById('f-ip').value=a.ip;
+    document.getElementById('f-vendor').value=a.vendor;
+    document.getElementById('f-fw').value=a.fw;
+    document.getElementById('f-patch').value=a.patch;
+    document.getElementById('f-status').value=a.status;
+  } else {
+    ['f-name','f-ip','f-vendor','f-fw','f-patch'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('f-type').value='PLC';
+    document.getElementById('f-zone').value='OT';
+    document.getElementById('f-status').value='Active';
+  }
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open');editId=null}
+function bgClose(e){if(e.target===document.getElementById('modalBg'))closeModal()}
+function deleteAsset(id){if(confirm('Delete this asset?')){assets=assets.filter(a=>a.id!==id);render()}}
+function saveAsset(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('Device name is required.');return}
+  const obj={id:editId||nextId++,name,type:document.getElementById('f-type').value,zone:document.getElementById('f-zone').value,ip:document.getElementById('f-ip').value.trim(),vendor:document.getElementById('f-vendor').value.trim(),fw:document.getElementById('f-fw').value.trim(),patch:document.getElementById('f-patch').value,status:document.getElementById('f-status').value};
+  if(editId){assets=assets.map(a=>a.id===editId?obj:a)}else{assets.push(obj)}
+  closeModal();render();
+}
+render();
+</script>
+</body>
+</html>
